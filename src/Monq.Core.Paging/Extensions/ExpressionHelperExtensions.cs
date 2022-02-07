@@ -172,7 +172,7 @@ namespace Monq.Core.Paging.Extensions
         {
             nullableObject = null;
 
-            if (!(expr is MemberExpression) && !(expr is MethodCallExpression))
+            if (expr is not MemberExpression && expr is not MethodCallExpression)
                 return true;
 
             Expression? obj;

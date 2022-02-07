@@ -19,7 +19,7 @@ namespace Monq.Core.Paging.Tests
             public Build SubBuild { get; set; }
         }
 
-        IEnumerable<Build> GenerateBuilds(int count = 1)
+        static IEnumerable<Build> GenerateBuilds(int count = 1)
         {
             var builds = new List<Build>();
             for (var i = 0; i < count; i++)

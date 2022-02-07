@@ -8,7 +8,7 @@ namespace Monq.Core.Paging.Tests
 {
     public class MultiLevelPagingSortingTests
     {
-        IEnumerable<FirstLevel> SeedData()
+        static IEnumerable<FirstLevel> SeedData()
         {
             var data = new List<FirstLevel>
             {
