@@ -28,7 +28,7 @@
     <PackageReference Include="DelegateDecompiler" Version="0.30.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Monq.Core.Paging.Models" Version="4.0.0" />
+    <PackageReference Include="Monq.Core.Paging.Models" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
