@@ -74,7 +74,7 @@ namespace Monq.Core.Paging.Extensions
 
         static int TryGetValue(this IHeaderDictionary headers, string key)
         {
-            if (!headers.Keys.Contains(key))
+            if (!headers.ContainsKey(key))
                 return 0;
 
             var value = headers[key].FirstOrDefault() ?? string.Empty;
