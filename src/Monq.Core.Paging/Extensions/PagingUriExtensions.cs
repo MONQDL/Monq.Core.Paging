@@ -72,7 +72,7 @@ namespace Monq.Core.Paging.Extensions
                 catch (ArgumentException ex)
                 {
                     throw new ArgumentException(
-                        "Обнаружено дублирование сопоставления наименования поля из DataTable модели на поле принимаемой view модели.",
+                        "A duplicate mapping of DataTable field to view model field was found.",
                         ex.ParamName);
                 }
             }
