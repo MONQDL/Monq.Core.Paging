@@ -20,7 +20,7 @@ namespace Monq.Core.Paging.Extensions
             var par = Expression.Parameter(typeof(TSource), "col");
             var propType = typeof(TSource).GetPropertyType(propertyName);
             if (propType is null)
-                throw new ArgumentException($"{typeof(TSource)} не содержит свойство {propertyName} ", nameof(propertyName));
+                throw new ArgumentException($"{typeof(TSource)} doest not contain a property {propertyName} ", nameof(propertyName));
 
             // Проверки на Null требуется проводить только для сортировки по вложенным свойствам.
             Expression propExpr = propertyName.Contains(".")
