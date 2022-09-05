@@ -41,7 +41,7 @@ namespace Monq.Core.Paging.Extensions
         public static IQueryable<TSource> WithPaging<TSource, TSortKey>(
             this IQueryable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder,
             Expression<Func<TSource, bool>> searchExpression,
             string? link = null) where TSource : class
@@ -66,7 +66,7 @@ namespace Monq.Core.Paging.Extensions
         public static IQueryable<TSource> WithPaging<TSource, TSortKey>(
             this IQueryable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder,
             string? link = null) where TSource : class
         {
@@ -90,7 +90,7 @@ namespace Monq.Core.Paging.Extensions
         public static IQueryable<TSource> WithPaging<TSource, TSortKey>(
             this IQueryable<TSource> data,
             DataTable paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder,
             string? link = null) where TSource : class
         {
@@ -114,7 +114,7 @@ namespace Monq.Core.Paging.Extensions
         public static IQueryable<TSource> WithPaging<TSource>(
             this IQueryable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             string? link = null) where TSource : class
         {
             return data.GetPaging<TSource, object>(paging, httpContext, link: link);
@@ -137,7 +137,7 @@ namespace Monq.Core.Paging.Extensions
         public static IQueryable<TSource> WithPaging<TSource, TSortKey>(
             this IEnumerable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder,
             string? link = null,
             SearchType searchType = SearchType.None,
@@ -276,7 +276,7 @@ namespace Monq.Core.Paging.Extensions
         static IQueryable<TSource> GetPaging<TSource, TSortKey>(
             this IQueryable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder = null,
             string? link = null,
             Searching? searching = null) where TSource : class
@@ -288,12 +288,15 @@ namespace Monq.Core.Paging.Extensions
         static IQueryable<TSource> GetPaging<TSource, TSortKey>(
             this IQueryable<TSource> data,
             PagingModel paging,
-            HttpContext httpContext,
+            HttpContext? httpContext,
             Expression<Func<TSource, TSortKey>>? defaultOrder,
             string? link,
-            Expression<Func<TSource, bool>> searchExpression) where TSource : class
+            Expression<Func<TSource, bool>>? searchExpression) where TSource : class
         {
             var sortedAndFilteredData = ApplySortSearchAndPageFilter(data, paging, out var pagingResult, defaultOrder, searchExpression);
+
+            if (httpContext is null)
+                return sortedAndFilteredData;
 
             var itemsTotalCount = pagingResult.TotalItemsCount;
             var itemsCount = pagingResult.ItemsFilteredCount;
