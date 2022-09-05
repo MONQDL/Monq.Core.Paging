@@ -41,7 +41,7 @@ namespace Monq.Core.Paging.Extensions
         /// <typeparam name="TSource">Тип модели для которой будет построено выражение.</typeparam>
         /// <param name="search">Поисковая фраза.</param>
         /// <param name="searching">Параметры поиска.</param>
-        internal static Expression<Func<TSource, bool>>? GetExpressionForSearch<TSource>(this Searching? searching, string search)
+        internal static Expression<Func<TSource, bool>>? GetExpressionForSearch<TSource>(this Searching? searching, string? search)
         {
             if (string.IsNullOrEmpty(search))
                 return null;
