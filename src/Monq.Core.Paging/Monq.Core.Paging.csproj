@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.0.3</Version>
+    <Version>3.1.0</Version>
     <VersionSuffix>$(VersionSuffix)</VersionSuffix>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(Version)-$(VersionSuffix)</Version>
     <IsPackable>true</IsPackable>
@@ -24,7 +24,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="DelegateDecompiler" Version="0.30.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
@@ -32,11 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" Condition="'$(TargetFramework)' == 'net6.0'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" Condition="'$(TargetFramework)' == 'net6.0'" />
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.1" Condition="'$(TargetFramework)' == 'net5.0'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" Condition="'$(TargetFramework)' == 'net5.0'" />
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.14" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
   </ItemGroup>
 
 </Project>
