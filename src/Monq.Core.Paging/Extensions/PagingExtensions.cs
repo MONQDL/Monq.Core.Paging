@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Monq.Core.Paging.Helpers;
 using Monq.Core.Paging.Models;
@@ -206,14 +205,14 @@ namespace Monq.Core.Paging.Extensions
         /// <typeparam name="TSource">Тип модели.</typeparam>
         /// <typeparam name="TResult">Тип возвращаемой модели.</typeparam>
         /// <param name="data">Модель.</param>
-        /// <param name="mapper">Мэппер для преобразования <typeparamref name="TSource" /> в <typeparamref name="TResult" />.</param>
+        /// <param name="mapData">Map function to map values from <typeparamref name="TSource" /> to <typeparamref name="TResult" />.</param>
         /// <param name="httpContext">The HTTP context.</param>
         /// <returns>
         ///   <see cref="DataTablesResponse{TSource}" />
         /// </returns>
         public static DataTablesResponse<TResult> ToDataTablesResponse<TSource, TResult>(
             this IQueryable<TSource> data,
-            IMapper mapper,
+            Func<List<TSource>, IEnumerable<TResult>> mapData,
             HttpContext httpContext) where TSource : class
         {
             var pagingData = httpContext.Response.GetPagingData();
@@ -222,7 +221,7 @@ namespace Monq.Core.Paging.Extensions
             {
                 RecordsTotal = pagingData.TotalRecords,
                 RecordsFiltered = pagingData.TotalFilteredRecords,
-                Data = mapper.Map<IEnumerable<TResult>>(resultData)
+                Data = mapData(resultData)
             };
             return result;
         }
@@ -233,14 +232,14 @@ namespace Monq.Core.Paging.Extensions
         /// <typeparam name="TSource">Тип модели.</typeparam>
         /// <typeparam name="TResult">Тип возвращаемой модели.</typeparam>
         /// <param name="data">Модель.</param>
-        /// <param name="mapper">Мэппер для преобразования <typeparamref name="TSource" /> в <typeparamref name="TResult" />.</param>
+        /// <param name="mapData">Map function to map values from <typeparamref name="TSource" /> to <typeparamref name="TResult" />.</param>
         /// <param name="httpContext">The HTTP context.</param>
         /// <returns>
         ///   <see cref="DataTablesResponse{T}" />
         /// </returns>
         public static async Task<DataTablesResponse<TResult>> ToDataTablesResponseAsync<TSource, TResult>(
             this IQueryable<TSource> data,
-            IMapper mapper,
+            Func<List<TSource>, IEnumerable<TResult>> mapData,
             HttpContext httpContext) where TSource : class
         {
             var pagingData = httpContext.Response.GetPagingData();
@@ -249,7 +248,7 @@ namespace Monq.Core.Paging.Extensions
             {
                 RecordsTotal = pagingData.TotalRecords,
                 RecordsFiltered = pagingData.TotalFilteredRecords,
-                Data = mapper.Map<IEnumerable<TResult>>(resultData)
+                Data = mapData(resultData)
             };
             return result;
         }
