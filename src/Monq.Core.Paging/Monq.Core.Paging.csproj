@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.1.0</Version>
+    <Version>3.2.0</Version>
     <VersionSuffix>$(VersionSuffix)</VersionSuffix>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(Version)-$(VersionSuffix)</Version>
     <IsPackable>true</IsPackable>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <Authors>Sergey Pismennyi, Dmitry Fokin, Stas Skotnikov, Evgeniy Zyatyna, Antony Vorontsov, melnikovmv</Authors>
     <Company>MONQ Digital lab</Company>
     <Title>Monq.Core.Paging</Title>
@@ -30,12 +30,20 @@
     <PackageReference Include="Monq.Core.Paging.Models" Version="4.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" Condition="'$(TargetFramework)' == 'net6.0'" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+  </ItemGroup>
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" Condition="'$(TargetFramework)' == 'net5.0'" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
+  </ItemGroup>
 
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
   </ItemGroup>
 
 </Project>
