@@ -9,7 +9,7 @@ namespace Monq.Core.Paging.Tests;
 
 public class MultipleColumnPagingSortingTests
 {
-    [Fact(DisplayName = "Проверка сортировки по нескольким полям. Проверка только первого поля (ASC).")]
+    [Fact(DisplayName = "Checking a sort by multiple columns. Checking the first column only (ASC).")]
     public void ShouldProperlySortFirstPropertyAsc()
     {
         var paging = new Models.PagingModel
@@ -51,7 +51,7 @@ public class MultipleColumnPagingSortingTests
         Assert.Equal("first-02", entity8.FirstCol);
     }
 
-    [Fact(DisplayName = "Проверка сортировки по нескольким полям. Проверка только первого поля (DESC).")]
+    [Fact(DisplayName = "Checking a sort by multiple columns. Checking the first column only (DESC).")]
     public void ShouldProperlySortFirstPropertyDesc()
     {
         var paging = new Models.PagingModel
@@ -93,7 +93,7 @@ public class MultipleColumnPagingSortingTests
         Assert.Equal("first-01", entity8.FirstCol);
     }
 
-    [Fact(DisplayName = "Проверка сортировки по нескольким полям. Проверка по трём полям (ASC).")]
+    [Fact(DisplayName = "Checking a sort by multiple columns. Checking three columns (ASC).")]
     public void ShouldProperlySortThreePropertiesAsc()
     {
         var paging = new Models.PagingModel
@@ -139,7 +139,7 @@ public class MultipleColumnPagingSortingTests
         Assert.Equal(8, entity8.Id);
     }
 
-    [Fact(DisplayName = "Проверка сортировки по нескольким полям. Проверка по трём полям (DESC).")]
+    [Fact(DisplayName = "Checking a sort by multiple columns. Checking three columns (DESC).")]
     public void ShouldProperlySortThreePropertiesDesc()
     {
         var paging = new Models.PagingModel
@@ -185,7 +185,7 @@ public class MultipleColumnPagingSortingTests
         Assert.Equal(1, entity8.Id);
     }
 
-    [Fact(DisplayName = "Проверка сортировки по нескольким полям. Первое,второе - (ASC), третье -(DESC).")]
+    [Fact(DisplayName = "Checking a sort by multiple columns. Checking first and second - (ASC), third - (DESC).")]
     public void ShouldProperlySortThreePropertiesAscDesc()
     {
         var paging = new Models.PagingModel
