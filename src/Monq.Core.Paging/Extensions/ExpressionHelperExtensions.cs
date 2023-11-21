@@ -20,6 +20,16 @@ namespace Monq.Core.Paging.Extensions
                 .First(method => method.Name == nameof(Queryable.OrderByDescending)
                     && method.GetParameters().Length == 2);
 
+        static readonly MethodInfo _thenByMethod =
+            typeof(Queryable).GetMethods()
+                .First(method => method.Name == nameof(Queryable.ThenBy)
+                    && method.GetParameters().Length == 2);
+
+        static readonly MethodInfo _thenByDescMethod =
+            typeof(Queryable).GetMethods()
+                .First(method => method.Name == nameof(Queryable.ThenByDescending)
+                    && method.GetParameters().Length == 2);
+
         /// <summary>
         /// Отсортировать по возрастанию.
         /// </summary>
@@ -37,6 +47,26 @@ namespace Monq.Core.Paging.Extensions
         /// <param name="lambda">The lambda.</param>
         public static IQueryable<TSource> OrderByDescending<TSource>(this IQueryable<TSource> source, LambdaExpression lambda)
             => _orderByDescMethod.Call<IQueryable<TSource>>(new[] { typeof(TSource), lambda.ReturnType }, source, lambda);
+
+        /// <summary>
+        /// Performs a subsequent ordering in a sequence in ascending order.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="lambda">The lambda.</param>
+        /// <returns></returns>
+        public static IQueryable<TSource> ThenBy<TSource>(this IQueryable<TSource> source, LambdaExpression lambda)
+            => _thenByMethod.Call<IQueryable<TSource>>(new[] { typeof(TSource), lambda.ReturnType }, source, lambda);
+
+        /// <summary>
+        /// Performs a subsequent ordering in a sequence in descending order.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="lambda">The lambda.</param>
+        /// <returns></returns>
+        public static IQueryable<TSource> ThenByDescending<TSource>(this IQueryable<TSource> source, LambdaExpression lambda)
+            => _thenByDescMethod.Call<IQueryable<TSource>>(new[] { typeof(TSource), lambda.ReturnType }, source, lambda);
 
         /// <summary>
         /// Вызвать метод с указанными параметрами.
