@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
 using Monq.Core.Paging.Extensions;
+using Monq.Core.Paging.Models;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Monq.Core.Paging.Models;
 
 namespace Monq.Core.Paging.Tests;
-
 
 public class MultipleColumnPagingSortingTests
 {
@@ -101,8 +100,8 @@ public class MultipleColumnPagingSortingTests
         {
             Page = 1,
             PerPage = 10,
-            SortCols = new[] 
-            { 
+            SortCols = new[]
+            {
                 new SortColParameter { ColName = "FirstCol", Dir = "asc"},
                 new SortColParameter { ColName = "SecondCol", Dir = "asc"},
                 new SortColParameter { ColName = "ThirdCol", Dir = "asc"},

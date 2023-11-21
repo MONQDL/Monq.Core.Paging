@@ -32,11 +32,11 @@ namespace Monq.Core.Paging.Extensions
             var lambda = Expression.Lambda(propExpr.Decompile().ExpressionCallsToConstants(), par);
 
             if (string.IsNullOrEmpty(dir) || dir == "asc")
-                return !isSubsequent 
-                    ? data.OrderBy(lambda) 
+                return !isSubsequent
+                    ? data.OrderBy(lambda)
                     : data.ThenBy(lambda);
-            
-            return !isSubsequent 
+
+            return !isSubsequent
                 ? data.OrderByDescending(lambda)
                 : data.ThenByDescending(lambda);
         }
