@@ -15,7 +15,8 @@ namespace Monq.Core.Paging.Extensions
         /// <param name="data">The data.</param>
         /// <param name="propertyName">Name of the field.</param>
         /// <param name="dir">The dir.</param>
-        public static IQueryable<TSource> OrderByProperty<TSource>(this IQueryable<TSource> data, string propertyName, string? dir)
+        /// <param name="isSubsequent">The option whether sorting is a subsequent.</param>
+        public static IQueryable<TSource> OrderByProperty<TSource>(this IQueryable<TSource> data, string propertyName, string? dir, bool isSubsequent = false)
         {
             var par = Expression.Parameter(typeof(TSource), "col");
             var propType = typeof(TSource).GetPropertyType(propertyName);
@@ -30,9 +31,14 @@ namespace Monq.Core.Paging.Extensions
             // Декомпилируем свойства помеченные как Computed, чтобы EF мог их правильно воспринимать.
             var lambda = Expression.Lambda(propExpr.Decompile().ExpressionCallsToConstants(), par);
 
-            if (string.IsNullOrEmpty(dir) || dir == "asc")
-                return data.OrderBy(lambda);
-            return data.OrderByDescending(lambda);
+            if (string.IsNullOrEmpty(dir) || dir.ToLower() == "asc")
+                return !isSubsequent
+                    ? data.OrderBy(lambda)
+                    : data.ThenBy(lambda);
+
+            return !isSubsequent
+                ? data.OrderByDescending(lambda)
+                : data.ThenByDescending(lambda);
         }
 
         /// <summary>
