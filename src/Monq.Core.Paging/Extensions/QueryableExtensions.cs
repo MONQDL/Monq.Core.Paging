@@ -31,7 +31,7 @@ namespace Monq.Core.Paging.Extensions
             // Декомпилируем свойства помеченные как Computed, чтобы EF мог их правильно воспринимать.
             var lambda = Expression.Lambda(propExpr.Decompile().ExpressionCallsToConstants(), par);
 
-            if (string.IsNullOrEmpty(dir) || dir == "asc")
+            if (string.IsNullOrEmpty(dir) || dir.ToLower() == "asc")
                 return !isSubsequent
                     ? data.OrderBy(lambda)
                     : data.ThenBy(lambda);
