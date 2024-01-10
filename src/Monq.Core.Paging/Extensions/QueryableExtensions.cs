@@ -57,9 +57,6 @@ namespace Monq.Core.Paging.Extensions
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
             var stringProperties = props.Where(p => p.Property.PropertyType == typeof(string)).ToList();
 
-            if (!stringProperties.Any())
-                return null;
-
             var parameter = Expression.Parameter(typeof(TSource), "t");
             var methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
             var methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes);
@@ -82,11 +79,15 @@ namespace Monq.Core.Paging.Extensions
                 expList.Add(extAnd);
             }
 
-            if (long.TryParse(search, out _))
+            if (long.TryParse(search, out _) || Guid.TryParse(search, out _))
             {
-                var intProperties = props.Where(p => p.Property.PropertyType == typeof(int) || p.Property.PropertyType == typeof(long));
+                var valueProperties = props.Where(p =>
+                    p.Property.PropertyType == typeof(int)
+                    || p.Property.PropertyType == typeof(long)
+                    || p.Property.PropertyType == typeof(Guid));
+
                 var expression = Expression.Constant(true);
-                foreach (var (fullName, _) in intProperties)
+                foreach (var (fullName, _) in valueProperties)
                 {
                     var expMember = parameter.GetPropertyExpression(fullName);
                     var ext = Expression.Call(expMember, methodToString);

@@ -15,6 +15,7 @@ namespace Monq.Core.Paging.Tests
         class Build
         {
             public int Id { get; set; }
+            public Guid GuidId { get; set; }
             public string Name { get; set; }
             public Build SubBuild { get; set; }
         }
@@ -24,7 +25,8 @@ namespace Monq.Core.Paging.Tests
             var builds = new List<Build>();
             for (var i = 0; i < count; i++)
             {
-                builds.Add(new Build { Id = i, Name = $"Сборка test_{i}" });
+                var guidString = string.Format("{0:00000000-0000-0000-0000-000000000000}", 1 + i);
+                builds.Add(new Build { Id = i, Name = $"Сборка test_{i}", GuidId = new Guid(guidString) });
             }
 
             return builds;
@@ -410,7 +412,7 @@ namespace Monq.Core.Paging.Tests
             var builds = GenerateBuilds(8);
             var result = builds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
                 .ToList();
 
             Assert.Single(result);
@@ -432,11 +434,37 @@ namespace Monq.Core.Paging.Tests
                 GenerateBuilds(8));
             var result = await builds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
                 .ToDataTablesResponseAsync(httpContext);
 
             Assert.Single(result.Data);
             Assert.Equal(3, result.Data.First().Id);
+        }
+
+        [Fact(DisplayName = "Проверка фильтрации элементов по полю paging.Search по полю типа Guid")]
+        public void ShouldProperlySearchRecordsInListByGuidField()
+        {
+            var guidValue = new Guid(string.Format("{0:00000000-0000-0000-0000-000000000000}", 7));
+            var paging = new Models.PagingModel { Page = 1, PerPage = 10, Search = guidValue.ToString() };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Scheme = "http";
+            httpContext.Request.Host = new HostString("localhost", 5005);
+            httpContext.Request.Path = "/api/builds/byjobids";
+            httpContext.Request.QueryString = new QueryString("?jobs=1,3");
+
+            var builds = GenerateBuilds(8);
+            foreach (var build in builds)
+                build.Name = "build";
+
+            var result = builds
+                .AsQueryable()
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.GuidId)
+                .ToList();
+
+            Assert.Single(result);
+            Assert.Equal(guidValue, result[0].GuidId);
+            Assert.Equal(6, result[0].Id);
         }
 
         [Fact(DisplayName = "Проверка фильтрации элементов по полю paging.Search по полю типа int")]
@@ -456,7 +484,7 @@ namespace Monq.Core.Paging.Tests
 
             var result = builds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
                 .ToList();
 
             Assert.Single(result);
@@ -481,7 +509,7 @@ namespace Monq.Core.Paging.Tests
 
             var result = await asyncBuilds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
                 .ToDataTablesResponseAsync(httpContext);
 
             Assert.Single(result.Data);
