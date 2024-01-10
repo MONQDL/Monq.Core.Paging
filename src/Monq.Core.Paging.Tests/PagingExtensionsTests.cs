@@ -412,7 +412,7 @@ namespace Monq.Core.Paging.Tests
             var builds = GenerateBuilds(8);
             var result = builds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Name)
                 .ToList();
 
             Assert.Single(result);
@@ -434,7 +434,7 @@ namespace Monq.Core.Paging.Tests
                 GenerateBuilds(8));
             var result = await builds
                 .AsQueryable()
-                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Id)
+                .WithPaging(paging, httpContext, x => x.Id, searchType: SearchType.Include, searchProps: x => x.Name)
                 .ToDataTablesResponseAsync(httpContext);
 
             Assert.Single(result.Data);
