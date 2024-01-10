@@ -441,7 +441,7 @@ namespace Monq.Core.Paging.Tests
             Assert.Equal(3, result.Data.First().Id);
         }
 
-        [Fact(DisplayName = "Проверка фильтрации элементов по полю paging.Search по полю типа Guid")]
+        [Fact(DisplayName = "Checking a filtration by property paging.Search (property type is Guid).")]
         public void ShouldProperlySearchRecordsInListByGuidField()
         {
             var guidValue = new Guid(string.Format("{0:00000000-0000-0000-0000-000000000000}", 7));

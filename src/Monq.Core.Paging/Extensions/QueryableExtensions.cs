@@ -56,6 +56,9 @@ namespace Monq.Core.Paging.Extensions
 
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
             var stringProperties = props.Where(p => p.Property.PropertyType == typeof(string)).ToList();
+            
+            if (!props.Any())
+                return null;
 
             var parameter = Expression.Parameter(typeof(TSource), "t");
             var methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
