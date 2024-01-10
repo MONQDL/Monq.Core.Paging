@@ -8,6 +8,9 @@ namespace Monq.Core.Paging.Extensions
 {
     public static class QueryableExtensions
     {
+        static readonly System.Reflection.MethodInfo? _MethodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
+        static readonly System.Reflection.MethodInfo? _MmethodToString = typeof(object).GetMethod(nameof(ToString));
+
         /// <summary>
         /// Orderings the by.
         /// </summary>
@@ -61,13 +64,9 @@ namespace Monq.Core.Paging.Extensions
                 return null;
 
             var parameter = Expression.Parameter(typeof(TSource), "t");
-            var methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
             var methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes);
-            var methodToString = typeof(object).GetMethod(nameof(ToString));
             var methodIsNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty), new[] { typeof(string) });
-
             var value = Expression.Constant(search.ToLower(), typeof(string));
-
             var expList = new List<BinaryExpression>();
 
             foreach (var (fullName, _) in stringProperties)
@@ -76,28 +75,31 @@ namespace Monq.Core.Paging.Extensions
                 var extIsNullOrEmpty = Expression.Not(Expression.Call(methodIsNullOrEmpty, expMember.AddNullConditions()));
 
                 var expLower = Expression.Call(expMember, methodToLower);
-                var expContains = Expression.Call(expLower, methodContains, value);
+                var expContains = Expression.Call(expLower, _MethodContains, value);
 
                 var extAnd = Expression.AndAlso(extIsNullOrEmpty, expContains);
                 expList.Add(extAnd);
             }
 
-            if (long.TryParse(search, out _) || Guid.TryParse(search, out _))
+            if (long.TryParse(search, out _))
             {
-                var valueProperties = props.Where(p =>
-                    p.Property.PropertyType == typeof(int)
-                    || p.Property.PropertyType == typeof(long)
-                    || p.Property.PropertyType == typeof(Guid));
-
-                var expression = Expression.Constant(true);
-                foreach (var (fullName, _) in valueProperties)
-                {
-                    var expMember = parameter.GetPropertyExpression(fullName);
-                    var ext = Expression.Call(expMember, methodToString);
-                    var extContains = Expression.Call(ext, methodContains, value);
-                    var extAnd = Expression.Equal(extContains, expression);
-                    expList.Add(extAnd);
-                }
+                var intProperties = props.Where(p => p.Property.PropertyType == typeof(int) || p.Property.PropertyType == typeof(long))
+                    .ToList();
+                var intExpressions = FormExpressionsForValueProperties(
+                    intProperties,
+                    parameter,
+                    value);
+                expList.AddRange(intExpressions);
+            }
+            if(Guid.TryParse(search, out _))
+            {
+                var guidProperties = props.Where(p => p.Property.PropertyType == typeof(Guid))
+                    .ToList();
+                var guidExpressions = FormExpressionsForValueProperties(
+                    guidProperties, 
+                    parameter, 
+                    value);
+                expList.AddRange(guidExpressions);
             }
 
             if (expList.Count == 0)
@@ -105,6 +107,24 @@ namespace Monq.Core.Paging.Extensions
 
             var body = expList.Aggregate(Expression.OrElse);
             return Expression.Lambda<Func<TSource, bool>>(body, parameter);
+        }
+
+        private static IEnumerable<BinaryExpression> FormExpressionsForValueProperties(
+            IEnumerable<(string FullName, System.Reflection.PropertyInfo Property)> targetProps, 
+            ParameterExpression parameter, 
+            ConstantExpression value)
+        {
+            var result = new List<BinaryExpression>();
+            var expression = Expression.Constant(true);
+            foreach (var (fullName, _) in targetProps)
+            {
+                var expMember = parameter.GetPropertyExpression(fullName);
+                var ext = Expression.Call(expMember, _MmethodToString);
+                var extContains = Expression.Call(ext, _MethodContains, value);
+                var extAnd = Expression.Equal(extContains, expression);
+                result.Add(extAnd);
+            }
+            return result;
         }
     }
 }
