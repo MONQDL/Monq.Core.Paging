@@ -9,7 +9,7 @@ namespace Monq.Core.Paging.Extensions
     public static class QueryableExtensions
     {
         static readonly System.Reflection.MethodInfo? _MethodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
-        static readonly System.Reflection.MethodInfo? _MmethodToString = typeof(object).GetMethod(nameof(ToString));
+        static readonly System.Reflection.MethodInfo? _MethodToString = typeof(object).GetMethod(nameof(ToString));
 
         /// <summary>
         /// Orderings the by.
@@ -59,7 +59,7 @@ namespace Monq.Core.Paging.Extensions
 
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
             var stringProperties = props.Where(p => p.Property.PropertyType == typeof(string)).ToList();
-            
+
             if (!props.Any())
                 return null;
 
@@ -91,13 +91,13 @@ namespace Monq.Core.Paging.Extensions
                     value);
                 expList.AddRange(intExpressions);
             }
-            if(Guid.TryParse(search, out _))
+            if (Guid.TryParse(search, out _))
             {
                 var guidProperties = props.Where(p => p.Property.PropertyType == typeof(Guid))
                     .ToList();
                 var guidExpressions = FormExpressionsForValueProperties(
-                    guidProperties, 
-                    parameter, 
+                    guidProperties,
+                    parameter,
                     value);
                 expList.AddRange(guidExpressions);
             }
@@ -110,8 +110,8 @@ namespace Monq.Core.Paging.Extensions
         }
 
         private static IEnumerable<BinaryExpression> FormExpressionsForValueProperties(
-            IEnumerable<(string FullName, System.Reflection.PropertyInfo Property)> targetProps, 
-            ParameterExpression parameter, 
+            IEnumerable<(string FullName, System.Reflection.PropertyInfo Property)> targetProps,
+            ParameterExpression parameter,
             ConstantExpression value)
         {
             var result = new List<BinaryExpression>();
@@ -119,7 +119,7 @@ namespace Monq.Core.Paging.Extensions
             foreach (var (fullName, _) in targetProps)
             {
                 var expMember = parameter.GetPropertyExpression(fullName);
-                var ext = Expression.Call(expMember, _MmethodToString);
+                var ext = Expression.Call(expMember, _MethodToString);
                 var extContains = Expression.Call(ext, _MethodContains, value);
                 var extAnd = Expression.Equal(extContains, expression);
                 result.Add(extAnd);
