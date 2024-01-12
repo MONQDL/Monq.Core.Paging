@@ -9,22 +9,17 @@ namespace Monq.Core.Paging.Extensions
 {
     public static class QueryableExtensions
     {
-        // if it needs checking search value - method TryParse else - null
-        static readonly Dictionary<Type, MethodInfo?> _supportedTypes = new()
+        static readonly HashSet<Type> _supportSearchByStringPropertyTypes = new()
         {
-            [typeof(int)] = typeof(int).GetMethod(
-                nameof(int.TryParse),
-                new Type[] { typeof(string), typeof(int).MakeByRefType() })!,
-            [typeof(long)] = typeof(int).GetMethod(
-                nameof(int.TryParse),
-                new Type[] { typeof(string), typeof(int).MakeByRefType() })!,
-            [typeof(Guid)] = null,
+            typeof(string),
+            typeof(Guid),
         };
-
-        static readonly MethodInfo _methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) })!;
-        static readonly MethodInfo _methodToString = typeof(object).GetMethod(nameof(ToString))!;
-        static readonly MethodInfo _methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
-        static readonly MethodInfo _methodIsNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty), new[] { typeof(string) })!;
+        static readonly HashSet<Type> _supportSearchByIntNumberPropertyTypes = new()
+        {
+            typeof(int),
+            typeof(long),
+            typeof(Guid),
+        };
 
         /// <summary>
         /// Orderings the by.
@@ -73,66 +68,57 @@ namespace Monq.Core.Paging.Extensions
             searching ??= new Searching();
 
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
-            var stringProperties = props.Where(p => p.Property.PropertyType == typeof(string)).ToList();
+            var searchByStringProperties = props.Where(p => _supportSearchByStringPropertyTypes.Contains(p.Property.PropertyType))
+                .ToList();
 
             if (!props.Any())
                 return null;
 
             var parameter = Expression.Parameter(typeof(TSource), "t");
+            var methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
+            var methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes);
+            var methodToString = typeof(object).GetMethod(nameof(ToString));
+            var methodIsNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty), new[] { typeof(string) });
+
             var value = Expression.Constant(search.ToLower(), typeof(string));
+
             var expList = new List<BinaryExpression>();
 
-            foreach (var (fullName, _) in stringProperties)
+            foreach (var (fullName, prop) in searchByStringProperties)
             {
                 var expMember = parameter.GetPropertyExpressionUnSafe(fullName);
-                var extIsNullOrEmpty = Expression.Not(Expression.Call(_methodIsNullOrEmpty, expMember.AddNullConditions()));
+                if (prop.PropertyType != typeof(string))
+                    expMember = Expression.Call(expMember, methodToString);
 
-                var expLower = Expression.Call(expMember, _methodToLower);
-                var expContains = Expression.Call(expLower, _methodContains, value);
+                var extIsNullOrEmpty = Expression.Not(Expression.Call(methodIsNullOrEmpty, expMember.AddNullConditions()));
+
+                var expLower = Expression.Call(expMember, methodToLower);
+                var expContains = Expression.Call(expLower, methodContains, value);
 
                 var extAnd = Expression.AndAlso(extIsNullOrEmpty, expContains);
                 expList.Add(extAnd);
             }
 
-            var valueExpressions = FormExpressionsForSupportedTypes(
-                props,
-                parameter,
-                search);
-
-            expList.AddRange(valueExpressions);
+            if (long.TryParse(search, out _))
+            {
+                var searchByIntProperties = props.Where(p => _supportSearchByIntNumberPropertyTypes.Contains(p.Property.PropertyType))
+                    .ToList();
+                var expression = Expression.Constant(true);
+                foreach (var (fullName, _) in searchByIntProperties)
+                {
+                    var expMember = parameter.GetPropertyExpression(fullName);
+                    var ext = Expression.Call(expMember, methodToString);
+                    var extContains = Expression.Call(ext, methodContains, value);
+                    var extAnd = Expression.Equal(extContains, expression);
+                    expList.Add(extAnd);
+                }
+            }
 
             if (expList.Count == 0)
                 return null;
 
             var body = expList.Aggregate(Expression.OrElse);
             return Expression.Lambda<Func<TSource, bool>>(body, parameter);
-        }
-
-        private static IEnumerable<BinaryExpression> FormExpressionsForSupportedTypes(
-            IEnumerable<(string FullName, PropertyInfo Property)> targetProps,
-            ParameterExpression parameter,
-            string searchValue)
-        {
-            var result = new List<BinaryExpression>();
-            var valueExpr = Expression.Constant(searchValue.ToLower(), typeof(string));
-            var expression = Expression.Constant(true);
-
-            foreach (var (fullName, prop) in targetProps)
-            {
-                if (!_supportedTypes.TryGetValue(prop.PropertyType, out var tryParseMethod))
-                    continue;
-
-                if (tryParseMethod != null
-                    && (bool)tryParseMethod.Invoke(null, new object?[] { searchValue, null })! == false)
-                    continue;
-
-                var expMember = parameter.GetPropertyExpression(fullName);
-                var ext = Expression.Call(expMember, _methodToString);
-                var extContains = Expression.Call(ext, _methodContains, valueExpr);
-                var extAnd = Expression.Equal(extContains, expression);
-                result.Add(extAnd);
-            }
-            return result;
         }
     }
 }
