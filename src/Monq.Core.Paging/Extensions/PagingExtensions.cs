@@ -338,21 +338,16 @@ namespace Monq.Core.Paging.Extensions
             if (!string.IsNullOrWhiteSpace(paging.Search) && searchExpression is not null)
                 filteredData = data.Where(searchExpression);
 
-            List<SortColParameter> multipleSortParameters = new List<SortColParameter>();
-            if (paging.SortCols != null && paging.SortCols.Any())
+            IQueryable<TSource> sortedAndFilteredData;
+            var sortCol = typeof(TSource).GetValidPropertyName(paging.SortCol);
+            if (!string.IsNullOrEmpty(sortCol) && sortCol.Length == paging.SortCol.Trim().Length)
             {
-                multipleSortParameters.AddRange(paging.SortCols);
+                sortedAndFilteredData = filteredData.OrderByProperty(sortCol, paging.SortDir);
             }
-            else if (paging.SortCol is not null)
-            {
-                multipleSortParameters.Add(new SortColParameter
-                {
-                    ColName = paging.SortCol,
-                    Dir = paging.SortDir,
-                });
-            }
-
-            IQueryable<TSource> sortedAndFilteredData = GetOrderedBy(filteredData, multipleSortParameters, defaultOrder);
+            else if (defaultOrder is not null)
+                sortedAndFilteredData = filteredData.OrderBy(defaultOrder);
+            else
+                sortedAndFilteredData = filteredData;
 
             var totalItemsCount = data.Count();
             var filteredItemsCount = data == filteredData ? totalItemsCount : sortedAndFilteredData.Count();
@@ -361,31 +356,6 @@ namespace Monq.Core.Paging.Extensions
             pagingResult.TotalItemsCount = totalItemsCount;
             pagingResult.ItemsFilteredCount = filteredItemsCount;
             return sortedAndFilteredData;
-        }
-
-        static IQueryable<TSource> GetOrderedBy<TSource, TSortKey>(
-            IQueryable<TSource> query,
-            IEnumerable<SortColParameter> sortOptions,
-            Expression<Func<TSource, TSortKey>>? defaultOrder)
-        {
-            int count = 0;
-            foreach (var item in sortOptions)
-            {
-                var sortCol = typeof(TSource).GetValidPropertyName(item.ColName);
-                if (string.IsNullOrEmpty(sortCol) || sortCol.Length != item.ColName.Trim().Length)
-                    continue;
-
-                query = query.OrderByProperty(
-                    propertyName: sortCol,
-                    dir: item.Dir,
-                    isSubsequent: count > 0);
-                count++;
-            }
-
-            if (count == 0 && defaultOrder is not null)
-                query = query.OrderBy(defaultOrder);
-
-            return query;
         }
 
         static IQueryable<TSource> ApplySkipTakeAndGetPagination<TSource>(
