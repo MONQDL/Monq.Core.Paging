@@ -90,15 +90,15 @@ namespace Monq.Core.Paging.Extensions
 
             foreach (var (fullName, prop) in searchByStringProperties)
             {
-                BinaryExpression extAnd = prop.PropertyType == typeof(string) 
+                var expAnd = prop.PropertyType == typeof(string) 
                     ? FormExpressionForStringProperty(parameter, value, fullName)
                     : FormExpressionForValueProperty(parameter, value, fullName);
-                expList.Add(extAnd);
+                expList.Add(expAnd);
             }
             foreach (var (fullName, _) in searchByIntProperties)
             {
-                BinaryExpression extAnd = FormExpressionForValueProperty(parameter, value, fullName);
-                expList.Add(extAnd);
+                var expAnd = FormExpressionForValueProperty(parameter, value, fullName);
+                expList.Add(expAnd);
             }
 
             if (expList.Count == 0)
@@ -111,11 +111,11 @@ namespace Monq.Core.Paging.Extensions
         static BinaryExpression FormExpressionForStringProperty(ParameterExpression parameter, ConstantExpression value, string fullName)
         {
             var expMember = parameter.GetPropertyExpressionUnSafe(fullName);
-            var extIsNullOrEmpty = Expression.Not(Expression.Call(_methodIsNullOrEmpty, expMember.AddNullConditions()));
+            var expIsNullOrEmpty = Expression.Not(Expression.Call(_methodIsNullOrEmpty, expMember.AddNullConditions()));
             var expLower = Expression.Call(expMember, _methodToLower);
             var expContains = Expression.Call(expLower, _methodContains, value);
-            var extAnd = Expression.AndAlso(extIsNullOrEmpty, expContains);
-            return extAnd;
+            var expAnd = Expression.AndAlso(expIsNullOrEmpty, expContains);
+            return expAnd;
         }
 
         static BinaryExpression FormExpressionForValueProperty(
@@ -124,10 +124,10 @@ namespace Monq.Core.Paging.Extensions
             string fullName)
         {
             var expMember = parameter.GetPropertyExpression(fullName);
-            var ext = Expression.Call(expMember, _methodToString);
-            var extContains = Expression.Call(ext, _methodContains, searchValue);
-            var extAnd = Expression.Equal(extContains, Expression.Constant(true));
-            return extAnd;
+            var expMemberToString = Expression.Call(expMember, _methodToString);
+            var expContains = Expression.Call(expMemberToString, _methodContains, searchValue);
+            var expAnd = Expression.Equal(expContains, Expression.Constant(true));
+            return expAnd;
         }
     }
 }
