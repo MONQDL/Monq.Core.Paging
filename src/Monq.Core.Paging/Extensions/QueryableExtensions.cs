@@ -73,8 +73,12 @@ namespace Monq.Core.Paging.Extensions
             searching ??= new Searching();
 
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
-            var stringProperties = props.Where(p => _supportSearchByStringPropertyTypes
+            var searchByIntProperties = long.TryParse(search, out _)
+                ? props.Where(p => _supportSearchByIntNumberPropertyTypes.Contains(p.Property.PropertyType)).ToList()
+                : new List<(string, PropertyInfo)>();
+            var searchByStringProperties = props.Where(p => _supportSearchByStringPropertyTypes
                 .Contains(p.Property.PropertyType))
+                .Except(searchByIntProperties)
                 .ToList();
 
             if (!props.Any())
@@ -84,23 +88,17 @@ namespace Monq.Core.Paging.Extensions
             var value = Expression.Constant(search.ToLower(), typeof(string));
             var expList = new List<BinaryExpression>();
 
-            foreach (var (fullName, prop) in stringProperties)
+            foreach (var (fullName, prop) in searchByStringProperties)
             {
                 BinaryExpression extAnd = prop.PropertyType == typeof(string) 
                     ? FormExpressionForStringProperty(parameter, value, fullName)
                     : FormExpressionForValueProperty(parameter, value, fullName);
                 expList.Add(extAnd);
             }
-
-            if (long.TryParse(search, out _))
+            foreach (var (fullName, _) in searchByIntProperties)
             {
-                var searchByIntProperties = props.Where(p => _supportSearchByIntNumberPropertyTypes.Contains(p.Property.PropertyType))
-                    .ToList();
-                foreach (var (fullName, _) in searchByIntProperties)
-                {
-                    BinaryExpression extAnd = FormExpressionForValueProperty(parameter, value, fullName);
-                    expList.Add(extAnd);
-                }
+                BinaryExpression extAnd = FormExpressionForValueProperty(parameter, value, fullName);
+                expList.Add(extAnd);
             }
 
             if (expList.Count == 0)
