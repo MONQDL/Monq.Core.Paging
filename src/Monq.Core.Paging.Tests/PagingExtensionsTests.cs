@@ -467,6 +467,56 @@ namespace Monq.Core.Paging.Tests
             Assert.Equal(6, result[0].Id);
         }
 
+        [Fact(DisplayName = "Checking a filtration paging.Search by several property (search value is number).")]
+        public void ShouldProperlySearchRecordsInListByManyFieldWhenSearchValueIsNumber()
+        {
+            var paging = new Models.PagingModel { Page = 1, PerPage = 10, Search = 4.ToString() };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Scheme = "http";
+            httpContext.Request.Host = new HostString("localhost", 5005);
+            httpContext.Request.Path = "/api/builds/byjobids";
+            httpContext.Request.QueryString = new QueryString("?jobs=1,3");
+
+            var builds = GenerateBuilds(8);
+
+            var result = builds
+                .AsQueryable()
+                .WithPaging(paging, httpContext, x => x.Id, null, SearchType.Include, 1, x => x.Id, x => x.GuidId)
+                .ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.Equal(3, result[0].Id);
+            Assert.Equal(4, result[1].Id);
+        }
+
+        [Fact(DisplayName = "Checking a filtration paging.Search by several property (search value is string).")]
+        public void ShouldProperlySearchRecordsInListByManyFieldWhenSearchValueIsString()
+        {
+            var paging = new Models.PagingModel { Page = 1, PerPage = 10, Search = "abc123" };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Scheme = "http";
+            httpContext.Request.Host = new HostString("localhost", 5005);
+            httpContext.Request.Path = "/api/builds/byjobids";
+            httpContext.Request.QueryString = new QueryString("?jobs=1,3");
+
+            var builds = GenerateBuilds(8).Union(new[] 
+            { 
+                new Build { Id = 9, GuidId = new Guid(string.Format("{0:00000000-0000-0000-0000-00abc1230000}", 9))},
+                new Build { Id = 10, GuidId = new Guid(string.Format("{0:00000000-0000-0000-0000-000000000000}", 10)), Name = "build-abc123"},
+            });
+
+            var result = builds
+                .AsQueryable()
+                .WithPaging(paging, httpContext, x => x.Id, null, SearchType.Include, 1, x => x.Name, x => x.GuidId)
+                .ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.Equal(9, result[0].Id);
+            Assert.Equal(10, result[1].Id);
+        }
+
         [Fact(DisplayName = "Проверка фильтрации элементов по полю paging.Search по полю типа int")]
         public void ShouldProperlySearchRecordsInListByIntField()
         {
