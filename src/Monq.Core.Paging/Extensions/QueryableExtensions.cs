@@ -9,6 +9,11 @@ namespace Monq.Core.Paging.Extensions
 {
     public static class QueryableExtensions
     {
+        static readonly MethodInfo _methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) })!;
+        static readonly MethodInfo _methodToString = typeof(object).GetMethod(nameof(ToString))!;
+        static readonly MethodInfo _methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+        static readonly MethodInfo _methodIsNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty), new[] { typeof(string) })!;
+
         static readonly HashSet<Type> _supportSearchByStringPropertyTypes = new()
         {
             typeof(string),
@@ -68,34 +73,22 @@ namespace Monq.Core.Paging.Extensions
             searching ??= new Searching();
 
             var props = typeof(TSource).GetPublicProperties(searching.Depth, searching.InSearch).ToList();
-            var searchByStringProperties = props.Where(p => _supportSearchByStringPropertyTypes.Contains(p.Property.PropertyType))
+            var stringProperties = props.Where(p => _supportSearchByStringPropertyTypes
+                .Contains(p.Property.PropertyType))
                 .ToList();
 
             if (!props.Any())
                 return null;
 
             var parameter = Expression.Parameter(typeof(TSource), "t");
-            var methodContains = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
-            var methodToLower = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes);
-            var methodToString = typeof(object).GetMethod(nameof(ToString));
-            var methodIsNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty), new[] { typeof(string) });
-
             var value = Expression.Constant(search.ToLower(), typeof(string));
-
             var expList = new List<BinaryExpression>();
 
-            foreach (var (fullName, prop) in searchByStringProperties)
+            foreach (var (fullName, prop) in stringProperties)
             {
-                var expMember = parameter.GetPropertyExpressionUnSafe(fullName);
-                if (prop.PropertyType != typeof(string))
-                    expMember = Expression.Call(expMember, methodToString);
-
-                var extIsNullOrEmpty = Expression.Not(Expression.Call(methodIsNullOrEmpty, expMember.AddNullConditions()));
-
-                var expLower = Expression.Call(expMember, methodToLower);
-                var expContains = Expression.Call(expLower, methodContains, value);
-
-                var extAnd = Expression.AndAlso(extIsNullOrEmpty, expContains);
+                BinaryExpression extAnd = prop.PropertyType == typeof(string) 
+                    ? FormExpressionForStringProperty(parameter, value, fullName)
+                    : FormExpressionForValueProperty(parameter, value, fullName);
                 expList.Add(extAnd);
             }
 
@@ -103,13 +96,9 @@ namespace Monq.Core.Paging.Extensions
             {
                 var searchByIntProperties = props.Where(p => _supportSearchByIntNumberPropertyTypes.Contains(p.Property.PropertyType))
                     .ToList();
-                var expression = Expression.Constant(true);
                 foreach (var (fullName, _) in searchByIntProperties)
                 {
-                    var expMember = parameter.GetPropertyExpression(fullName);
-                    var ext = Expression.Call(expMember, methodToString);
-                    var extContains = Expression.Call(ext, methodContains, value);
-                    var extAnd = Expression.Equal(extContains, expression);
+                    BinaryExpression extAnd = FormExpressionForValueProperty(parameter, value, fullName);
                     expList.Add(extAnd);
                 }
             }
@@ -119,6 +108,28 @@ namespace Monq.Core.Paging.Extensions
 
             var body = expList.Aggregate(Expression.OrElse);
             return Expression.Lambda<Func<TSource, bool>>(body, parameter);
+        }
+
+        static BinaryExpression FormExpressionForStringProperty(ParameterExpression parameter, ConstantExpression value, string fullName)
+        {
+            var expMember = parameter.GetPropertyExpressionUnSafe(fullName);
+            var extIsNullOrEmpty = Expression.Not(Expression.Call(_methodIsNullOrEmpty, expMember.AddNullConditions()));
+            var expLower = Expression.Call(expMember, _methodToLower);
+            var expContains = Expression.Call(expLower, _methodContains, value);
+            var extAnd = Expression.AndAlso(extIsNullOrEmpty, expContains);
+            return extAnd;
+        }
+
+        static BinaryExpression FormExpressionForValueProperty(
+            ParameterExpression parameter, 
+            ConstantExpression searchValue, 
+            string fullName)
+        {
+            var expMember = parameter.GetPropertyExpression(fullName);
+            var ext = Expression.Call(expMember, _methodToString);
+            var extContains = Expression.Call(ext, _methodContains, searchValue);
+            var extAnd = Expression.Equal(extContains, Expression.Constant(true));
+            return extAnd;
         }
     }
 }
