@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="DelegateDecompiler" Version="0.34.0" />
-    <PackageReference Include="Monq.Core.Paging.Models" Version="5.0.0-rev-11704314609" />
+    <PackageReference Include="Monq.Core.Paging.Models" Version="5.0.0" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
