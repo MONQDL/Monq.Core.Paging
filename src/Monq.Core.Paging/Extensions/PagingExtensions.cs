@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Monq.Core.Paging.Helpers;
 using Monq.Core.Paging.Models;
 using System;
 using System.Collections.Generic;
@@ -44,7 +43,7 @@ public static class PagingExtensions
         if (defaultOrder is null)
             throw new ArgumentNullException(nameof(defaultOrder), $"{nameof(defaultOrder)} is null.");
 
-        return data.GetPaging(paging, httpContext, defaultOrder, link, searchExpression);
+        return data.GetPaging(paging, httpContext, defaultOrder, searchExpression);
     }
 
     /// <summary>
@@ -68,7 +67,7 @@ public static class PagingExtensions
         if (defaultOrder is null)
             throw new ArgumentNullException(nameof(defaultOrder), $"{nameof(defaultOrder)} is null.");
 
-        return data.GetPaging(paging, httpContext, defaultOrder, link);
+        return data.GetPaging(paging, httpContext, defaultOrder);
     }
 
     /// <summary>
@@ -84,11 +83,8 @@ public static class PagingExtensions
     public static IQueryable<TSource> WithPaging<TSource>(
         this IQueryable<TSource> data,
         PagingModel paging,
-        HttpContext? httpContext,
-        string? link = null) where TSource : class
-    {
-        return data.GetPaging<TSource, object>(paging, httpContext, link: link);
-    }
+        HttpContext? httpContext) where TSource : class =>
+            data.GetPaging<TSource, object>(paging, httpContext);
 
     /// <summary>
     /// Получить постраничное представление с мета данными в HTTP Header.
@@ -116,11 +112,12 @@ public static class PagingExtensions
         ) where TSource : class
     {
         if (defaultOrder is null)
-        {
             throw new ArgumentNullException(nameof(defaultOrder), $"{nameof(defaultOrder)} is null.");
-        }
 
-        return data.AsQueryable().GetPaging(paging, httpContext, defaultOrder, link, Searching.CreateSearching(searchType, searchDepth, searchProps));
+        return data.AsQueryable().GetPaging(paging,
+                   httpContext,
+                   defaultOrder,
+                   Searching.CreateSearching(searchType, searchDepth, searchProps));
     }
 
     static IQueryable<TSource> GetPaging<TSource, TSortKey>(
@@ -128,11 +125,10 @@ public static class PagingExtensions
         PagingModel paging,
         HttpContext? httpContext,
         Expression<Func<TSource, TSortKey>>? defaultOrder = null,
-        string? link = null,
         Searching? searching = null) where TSource : class
     {
         var searchExpr = searching.GetExpressionForSearch<TSource>(paging.Search);
-        return GetPaging(data, paging, httpContext, defaultOrder, link, searchExpr);
+        return GetPaging(data, paging, httpContext, defaultOrder, searchExpr);
     }
 
     static IQueryable<TSource> GetPaging<TSource, TSortKey>(
@@ -140,7 +136,6 @@ public static class PagingExtensions
         PagingModel paging,
         HttpContext? httpContext,
         Expression<Func<TSource, TSortKey>>? defaultOrder,
-        string? link,
         Expression<Func<TSource, bool>>? searchExpression) where TSource : class
     {
         var sortedAndFilteredData = ApplySortSearchAndPageFilter(data, paging, out var pagingResult, defaultOrder, searchExpression);
@@ -153,22 +148,6 @@ public static class PagingExtensions
         var currentPage = pagingResult.CurrentPage;
         var totalPages = pagingResult.TotalPages;
 
-        Uri baseUri;
-        if (link is null)
-        {
-            var uriBuilder = new UriBuilder(httpContext.Request.Scheme, httpContext.Request.Host.Host, httpContext.Request.Host.Port ?? 80, httpContext.Request.Path.Value)
-            {
-                Query = httpContext.Request.QueryString.HasValue ? Uri.EscapeUriString(httpContext.Request.QueryString.Value) : string.Empty
-            };
-            baseUri = uriBuilder.Uri;
-        }
-        else
-        {
-            baseUri = new Uri(link);
-        }
-        var links = PagingHelper.GetLinks(baseUri, itemsCount, currentPage, paging.PerPage);
-
-        httpContext.Response.Headers.TryAdd(Constants.Headers.Link, links);
         httpContext.Response.Headers.TryAdd(Constants.Headers.TotalRecords, itemsTotalCount.ToString());
         httpContext.Response.Headers.TryAdd(Constants.Headers.TotalFilteredRecords, itemsCount.ToString());
         httpContext.Response.Headers.TryAdd(Constants.Headers.PerPage, paging.PerPage.ToString());
@@ -191,7 +170,7 @@ public static class PagingExtensions
 
         IQueryable<TSource> sortedAndFilteredData;
         var sortCol = typeof(TSource).GetValidPropertyName(paging.SortCol);
-        if (!string.IsNullOrEmpty(sortCol) && sortCol.Length == paging.SortCol.Trim().Length)
+        if (!string.IsNullOrEmpty(sortCol) && sortCol.Length == paging.SortCol?.Trim().Length)
         {
             sortedAndFilteredData = filteredData.OrderByProperty(sortCol, paging.SortDir);
         }

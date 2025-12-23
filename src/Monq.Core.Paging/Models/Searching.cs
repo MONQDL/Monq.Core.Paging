@@ -1,4 +1,4 @@
-﻿using Monq.Core.Paging.Extensions;
+using Monq.Core.Paging.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,25 +52,4 @@ public class Searching
     /// Gets or sets the type.
     /// </summary>
     public SearchType SearchType { get; protected set; } = SearchType.None;
-}
-
-/// <summary>
-/// Тип поиска
-/// </summary>
-public enum SearchType
-{
-    /// <summary>
-    /// Поиск по всем полям.
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// Поиск только по полям указанных в Properties.
-    /// </summary>
-    Include,
-
-    /// <summary>
-    /// Поиск по всем полям кроме тех что указаны в Properties.
-    /// </summary>
-    Exclude
 }

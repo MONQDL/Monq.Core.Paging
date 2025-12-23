@@ -49,16 +49,6 @@ public class PagingExtensionsTests
 
         Assert.Equal(4, result.Count);
 
-        var linksHeader = (string)httpContext.Response.Headers["Link"];
-
-        Assert.False(string.IsNullOrEmpty(linksHeader));
-
-        var pageLinks = linksHeader.Replace("\",", "\"|").Split('|');
-
-        Assert.Equal(2, pageLinks.Length);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=2>; rel=\"next\"", pageLinks[0]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=2>; rel=\"last\"", pageLinks[1]);
-
         Assert.Equal("8", httpContext.Response.Headers["X-Total"]);
         Assert.Equal("8", httpContext.Response.Headers["X-Total-Filtered"]);
         Assert.Equal("4", httpContext.Response.Headers["X-Per-Page"]);
@@ -84,18 +74,6 @@ public class PagingExtensionsTests
             .ToList();
 
         Assert.Equal(4, result.Count);
-
-        var linksHeader = (string)httpContext.Response.Headers["Link"];
-
-        Assert.False(string.IsNullOrEmpty(linksHeader));
-
-        var pageLinks = linksHeader.Replace("\",", "\"|").Split('|');
-
-        Assert.Equal(4, pageLinks.Length);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=1>; rel=\"first\"", pageLinks[0]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=1>; rel=\"prev\"", pageLinks[1]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=3>; rel=\"next\"", pageLinks[2]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=3>; rel=\"last\"", pageLinks[3]);
 
         Assert.Equal("12", httpContext.Response.Headers["X-Total"]);
         Assert.Equal("12", httpContext.Response.Headers["X-Total-Filtered"]);
@@ -123,16 +101,6 @@ public class PagingExtensionsTests
 
         Assert.Empty(result);
 
-        var linksHeader = (string)httpContext.Response.Headers["Link"];
-
-        Assert.False(string.IsNullOrEmpty(linksHeader));
-
-        var pageLinks = linksHeader.Replace("\",", "\"|").Split('|');
-
-        Assert.Equal(2, pageLinks.Length);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=1>; rel=\"first\"", pageLinks[0]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=9>; rel=\"prev\"", pageLinks[1]);
-
         Assert.Equal("8", httpContext.Response.Headers["X-Total"]);
         Assert.Equal("8", httpContext.Response.Headers["X-Total-Filtered"]);
         Assert.Equal("4", httpContext.Response.Headers["X-Per-Page"]);
@@ -159,14 +127,6 @@ public class PagingExtensionsTests
 
         Assert.Equal(8, result.Count);
 
-        var linksHeader = (string)httpContext.Response.Headers["Link"];
-
-        Assert.True(string.IsNullOrEmpty(linksHeader));
-
-        var pageLinks = linksHeader.Replace("\",", "\"|").Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-
-        Assert.Empty(pageLinks);
-
         Assert.Equal("8", httpContext.Response.Headers["X-Total"]);
         Assert.Equal("8", httpContext.Response.Headers["X-Total-Filtered"]);
         Assert.Equal("-1", httpContext.Response.Headers["X-Per-Page"]);
@@ -192,16 +152,6 @@ public class PagingExtensionsTests
             .ToList();
 
         Assert.Empty(result);
-
-        var linksHeader = (string)httpContext.Response.Headers["Link"];
-
-        Assert.False(string.IsNullOrEmpty(linksHeader));
-
-        var pageLinks = linksHeader.Replace("\",", "\"|").Split('|');
-
-        Assert.Equal(2, pageLinks.Length);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=-1>; rel=\"next\"", pageLinks[0]);
-        Assert.Equal("<http://localhost:5005/api/builds/byjobids?jobs=1,3&perPage=4&page=2>; rel=\"last\"", pageLinks[1]);
 
         Assert.Equal("8", httpContext.Response.Headers["X-Total"]);
         Assert.Equal("8", httpContext.Response.Headers["X-Total-Filtered"]);
