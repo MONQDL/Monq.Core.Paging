@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.0.0</Version>
+    <Version>5.1.0</Version>
     <VersionSuffix>$(VersionSuffix)</VersionSuffix>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(Version)-$(VersionSuffix)</Version>
     <IsPackable>true</IsPackable>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <Authors>Sergey Pismennyi, Dmitry Fokin, Stas Skotnikov, Evgeniy Zyatyna, Antony Vorontsov, melnikovmv</Authors>
     <Company>MONQ Digital lab</Company>
     <Title>Monq.Core.Paging</Title>
@@ -23,20 +23,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DelegateDecompiler" Version="0.34.0" />
+    <PackageReference Include="Monq.Core.Paging.Models" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DelegateDecompiler" Version="0.34.0" />
-    <PackageReference Include="Monq.Core.Paging.Models" Version="5.0.0" />
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using Monq.Core.Paging.Models;
+using Monq.Core.Paging.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ public static class QueryableExtensions
         var par = Expression.Parameter(typeof(TSource), "col");
         var propType = typeof(TSource).GetPropertyType(propertyName);
         if (propType is null)
-            throw new ArgumentException($"{typeof(TSource)} doest not contain a property {propertyName} ", nameof(propertyName));
+            throw new ArgumentException($"{typeof(TSource)} doesn't not contain a property '{propertyName}' ", nameof(propertyName));
 
         // Проверки на Null требуется проводить только для сортировки по вложенным свойствам.
         Expression propExpr = propertyName.Contains(".")
